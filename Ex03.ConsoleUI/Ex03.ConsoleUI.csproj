@@ -36,13 +36,13 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Program.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Ex03.GarageLogic\Ex03.GarageLogic.csproj">
       <Project>{00a9a413-764d-4480-b2b2-15a472ef5a5e}</Project>
       <Name>Ex03.GarageLogic</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Program.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

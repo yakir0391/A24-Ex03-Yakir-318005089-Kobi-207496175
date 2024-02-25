@@ -25,7 +25,12 @@ namespace Ex03.GarageLogic
             {
                 if (value + this.m_CurrentAirPressure < m_MaxAirPressure)
                 {
-                    m_CurrentAirPressure = value;
+                    m_CurrentAirPressure += value;
+                }
+                else
+                {
+                    throw new ValueOutOfRangeException("Current air pressure is over maximun", 0, MaxAirPressure);
+
                 }
             }
         }

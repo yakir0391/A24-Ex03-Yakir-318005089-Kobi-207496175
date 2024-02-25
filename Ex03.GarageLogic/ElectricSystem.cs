@@ -8,18 +8,42 @@ namespace Ex03.GarageLogic
 {
     public class ElectricSystem
     {
-        protected float m_RemainingBatteryTime;
-        protected float m_BatteryLife;
+        private float m_RemainingBatteryTime;
+        private float m_BatteryLife;
 
+        public ElectricSystem(float BatteryLife) 
+        {
+            this.BatteryLife = BatteryLife;
+        } 
+   
         public float RemainingBatteryTime
         {
-            get { return m_RemainingBatteryTime;}
+            get { return this.m_RemainingBatteryTime;}
+            set 
+            {
+                if (value < this.BatteryLife)
+                { 
+                    this.m_RemainingBatteryTime = value;
+                }
+                else
+                {
+                    throw new ValueOutOfRangeException("The current battery remaining is over the maximum !", 0, this.BatteryLife);
+                }
+            }
         }
         
         public float BatteryLife
         {
             get { return m_BatteryLife; }
+            set { m_BatteryLife = value;}
         }
+
+        public void UpdateElectricSystem(float i_RemainingBatteryTime, float i_BatteryLife)
+        {
+            this.m_RemainingBatteryTime = i_RemainingBatteryTime;
+            this.m_BatteryLife = i_BatteryLife;
+        }
+
         public void BatteryCharging(float numOfHours)
         {
 

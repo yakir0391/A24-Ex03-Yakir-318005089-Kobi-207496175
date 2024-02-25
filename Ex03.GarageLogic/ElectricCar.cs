@@ -8,14 +8,26 @@ namespace Ex03.GarageLogic
 {
     public class ElectricCar : Car
     {
-        ElectricSystem electricSystem = new ElectricSystem();
-        VehicleInGarage vehicleInGarage = new VehicleInGarage();
+        ElectricSystem m_ElectricSystem;
+        VehicleInGarage m_VehicleInGarage;
 
-        public void UpdateElectricCarDetails(eCarColors i_Color, eNumberOfDoors i_NumberOfDoors ,string i_ModelName
-            , string i_LicenceNumber, float i_EnergyLeft, List<Wheel> i_Wheels)
+        public ElectricCar(float maxAirPressure, int amount_of_wheels) : base(maxAirPressure, amount_of_wheels)
         {
-            this.UpdateCarDetails(i_Color, i_NumberOfDoors);
-            this.UpdateVehicleDetails(i_ModelName, i_LicenceNumber, i_EnergyLeft, i_Wheels);
+            this.m_ElectricSystem = new ElectricSystem(4.8f);
+            this.m_VehicleInGarage = new VehicleInGarage();
+
+        }
+        public VehicleInGarage VehicleInGarage
+        {
+            get { return m_VehicleInGarage; }
+
+        }
+        public ElectricSystem ElectricSystem { get { return m_ElectricSystem;} }
+        public void UpdateElectricCarAndOwnerInfo(float i_RemainingBatteryTime, float i_BatteryLife, string i_OwnerName,
+            string i_OwnerPhoneNumber, eVehicleCondition i_VehicleCondition)
+        {
+            this.m_ElectricSystem.UpdateElectricSystem(i_RemainingBatteryTime, i_BatteryLife);
+            this.m_VehicleInGarage.UpdateVehicleInGarageDetails(i_OwnerName,i_OwnerPhoneNumber, i_VehicleCondition);
         }
     }
 }
