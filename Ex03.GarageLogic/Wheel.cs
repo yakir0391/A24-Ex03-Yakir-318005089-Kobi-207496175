@@ -41,6 +41,13 @@ namespace Ex03.GarageLogic
             set { m_MaxAirPressure = value; }
         }
 
+        public Wheel Assign( Wheel wheel)
+        {
+            this.ManufacturerName = wheel.ManufacturerName;
+            this.CurrentAirPressure = wheel.CurrentAirPressure;
+            return this;
+        }
+
         public bool InflatingAir(float i_AirToAdd)
         {
             return true;

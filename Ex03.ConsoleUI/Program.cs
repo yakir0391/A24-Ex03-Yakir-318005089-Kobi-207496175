@@ -1,5 +1,8 @@
 ﻿using Ex03.GarageLogic;
 using System;
+using System.Collections.Generic;
+using System.Management.Instrumentation;
+using System.Runtime.InteropServices;
 
 namespace Ex03.ConsoleUI
 {
@@ -37,6 +40,7 @@ namespace Ex03.ConsoleUI
                         EnterNewVehicleInGarage();
                         break;
                     case 2:
+                        DisplayLicenceNumbers();
                         break;
                     case 3:
                         break;
@@ -56,12 +60,12 @@ namespace Ex03.ConsoleUI
 
         public static void EnterNewVehicleInGarage()
         {
-            Vehicle chosenVehicle = null;
             FuelCar fuelCar;
             FuelMotorcycle fuelMotorcycle;
             FuelTruck fuelTruck;
             ElectricCar electricCar;
             ElectricMotorcycle electricMotorcycle;
+            VehicleInGarageInformation vehicleInGarageInformation = new VehicleInGarageInformation();
             string licenceNumber;
             bool isExist;
             int vehicleID;
@@ -72,52 +76,48 @@ namespace Ex03.ConsoleUI
             if (!isExist)
             {
                 vehicleID = UserSelectVehicleForGarage();
+                GetClientInfo(vehicleInGarageInformation);
 
                 switch (vehicleID)
                 {
                     case 0:
                         fuelCar = m_VehiclesFactory.CreateFuelCar();
-                        GetVehicleInfoFromUser(fuelCar);
+                        GetVehicleInfoFromUser(fuelCar, licenceNumber);
                         GetFuelSystemInfoFromUser(fuelCar.FuelSystem);
                         GetCarInfoFromUser(fuelCar);
-                        GetClientInfo(fuelCar.VehicleInGarage);
-                        m_Garage.Vehicles.Add(fuelCar);
+                        m_Garage.Vehicles.Add(fuelCar.LicenseNumber,(fuelCar, vehicleInGarageInformation));
 
                         break;
                     case 1:
                         fuelMotorcycle = m_VehiclesFactory.CreateFuelMotorcycle();
-                        GetVehicleInfoFromUser(fuelMotorcycle);
+                        GetVehicleInfoFromUser(fuelMotorcycle, licenceNumber);
                         GetFuelSystemInfoFromUser(fuelMotorcycle.FuelSystem);
                         GetMotorcycleInfoFromUser(fuelMotorcycle);
-                        GetClientInfo(fuelMotorcycle.VehicleInGarage);
-                        m_Garage.Vehicles.Add(fuelMotorcycle);
+                        m_Garage.Vehicles.Add(fuelMotorcycle.LicenseNumber , (fuelMotorcycle, vehicleInGarageInformation));
 
                         break;
                     case 2:
                         electricCar = m_VehiclesFactory.createElectricCar();
-                        GetVehicleInfoFromUser(electricCar);
+                        GetVehicleInfoFromUser(electricCar, licenceNumber);
                         GetElectricSystemInfoFromUser(electricCar.ElectricSystem);
                         GetCarInfoFromUser(electricCar);
-                        GetClientInfo(electricCar.VehicleInGarage);
-                        m_Garage.Vehicles.Add(electricCar);
+                        m_Garage.Vehicles.Add(electricCar.LicenseNumber, (electricCar, vehicleInGarageInformation   ));
 
                         break;
                     case 3:
                         electricMotorcycle = m_VehiclesFactory.createElectricMotorcycle();
-                        GetVehicleInfoFromUser(electricMotorcycle);
+                        GetVehicleInfoFromUser(electricMotorcycle, licenceNumber);
                         GetElectricSystemInfoFromUser(electricMotorcycle.ElectricSystem);
                         GetMotorcycleInfoFromUser(electricMotorcycle);
-                        GetClientInfo(electricMotorcycle.VehicleInGarage);
-                        m_Garage.Vehicles.Add(electricMotorcycle);
+                        m_Garage.Vehicles.Add(electricMotorcycle.LicenseNumber, (electricMotorcycle, vehicleInGarageInformation));
 
                         break;
                     case 4:
                         fuelTruck = m_VehiclesFactory.createFuelTruck();
-                        GetVehicleInfoFromUser(fuelTruck);
+                        GetVehicleInfoFromUser(fuelTruck, licenceNumber );
                         GetFuelSystemInfoFromUser(fuelTruck.FuelSystem);
                         GetTruckInfoFromUser(fuelTruck);
-                        GetClientInfo(fuelTruck.VehicleInGarage);
-                        m_Garage.Vehicles.Add(fuelTruck);
+                        m_Garage.Vehicles.Add(fuelTruck.LicenseNumber, (fuelTruck, vehicleInGarageInformation));
 
                         break;
                     default:
@@ -126,7 +126,9 @@ namespace Ex03.ConsoleUI
             }
             else
             {
+                Console.WriteLine("The vehicle is in the garage.\n");
 
+                m_Garage.UpdateStatusForVehicle(licenceNumber);
             }
 
         }
@@ -186,20 +188,31 @@ namespace Ex03.ConsoleUI
             return parsedVehicleId;
         }
 
-        public static void GetVehicleInfoFromUser(Vehicle i_ChosenVehicle)
+        public static void GetVehicleInfoFromUser(Vehicle i_ChosenVehicle,string i_LicenseNumber)
         {
-            string modelName;
-            int i = 1;
+            string modelName, insertWheelsSelection;
+            int j = 1;
 
             Console.WriteLine("Enter model name contains only numbers and charcters :");
             modelName = Console.ReadLine();
 
-            foreach (Wheel wheel in i_ChosenVehicle.Wheels)
+            Console.Write("Press 1 if you wish to insert the wheels at once , any other key to insert them 1 by 1");
+            insertWheelsSelection = Console.ReadLine();
+
+            for (int i = 0; i < i_ChosenVehicle.Wheels.Count; i++)
             {
-                Console.WriteLine($"Enter details for wheel {i++}:");
-                GetWheelParametersFromUser(wheel);
+
+                if (insertWheelsSelection != "1" || i < 1) 
+                {
+                    Console.WriteLine($"Enter details for wheel {j++}:");
+                    GetWheelParametersFromUser(i_ChosenVehicle.Wheels[i]);
+                }
+                else if (i < i_ChosenVehicle.Wheels.Count - 1)
+                {
+                    i_ChosenVehicle.Wheels[i + 1].Assign(i_ChosenVehicle.Wheels[i]);
+                }
             }
-            
+            i_ChosenVehicle.LicenseNumber = i_LicenseNumber;
             i_ChosenVehicle.ModelName = modelName;
         }
 
@@ -222,7 +235,6 @@ namespace Ex03.ConsoleUI
                         throw new FormatException("Enter a valid input");
                     }
                     wheel.CurrentAirPressure = currentAirPressure;
-
 
                     break;
                 }
@@ -474,16 +486,18 @@ namespace Ex03.ConsoleUI
             i_ChosenVehicle.IsTransportHazardousMaterials = (isTransportHazardousMaterials == "1");
         }
 
-        public static void GetClientInfo(VehicleInGarage i_ChosenVehicle)
+        public static void GetClientInfo(VehicleInGarageInformation i_ChosenVehicle)
         {
             string ownerName, ownerPhoneNumber, carConditionSelected;
             int parseCarConditionSelected;
             eVehicleCondition eVehicleCondition;
+
             Console.WriteLine("Enter your name");
             ownerName = Console.ReadLine();
             Console.WriteLine("Enter your phone number");
             ownerPhoneNumber = Console.ReadLine();
             Console.WriteLine("enter car's condition");
+
             while (true)
             {
                 try
@@ -523,7 +537,62 @@ namespace Ex03.ConsoleUI
             (i_ChosenVehicle).OwnerName = ownerName;
             (i_ChosenVehicle).OwnerPhoneNumber = ownerPhoneNumber;
             (i_ChosenVehicle).VehicleCondition = eVehicleCondition;
+        }
+        
+        public static void DisplayLicenceNumbers()
+        {
+            string isFilter ,conditionTypeSelected;
+            int parseconditionTypeSelected;
+            string[] filteredLicence = new string[] { };
+            eVehicleCondition condition = eVehicleCondition.UnderRepair;
 
+            Console.WriteLine("Press 1 if you wish to filter by their condition , press any other ket otherwise.");
+            isFilter = Console.ReadLine();
+            if (isFilter != "1")
+            {
+                filteredLicence = m_Garage.GetLicenceArray(isFilter , condition);
+            }
+            else
+            { 
+                while (true)
+                {
+
+                    try
+                    {
+                        foreach (eVehicleCondition conditionIterator in Enum.GetValues(typeof(eVehicleCondition)))
+                        {
+                            Console.WriteLine($"{(int)conditionIterator}: {conditionIterator}");
+                        }
+
+                        conditionTypeSelected = Console.ReadLine();
+
+                        if (!int.TryParse(conditionTypeSelected, out parseconditionTypeSelected))
+                        {
+                            throw new FormatException("Enter a valid number");
+                        }
+                        else if (parseconditionTypeSelected < 0 || parseconditionTypeSelected > 2)
+                        {
+                            throw new ValueOutOfRangeException("condition type selection should be between 0-2!.", 0, 2);
+                        }
+
+                        condition = (eVehicleCondition)Enum.GetValues(typeof(eVehicleCondition)).GetValue(parseconditionTypeSelected);
+                        filteredLicence = m_Garage.GetLicenceArray(isFilter, condition);
+                        break;
+                    }
+                    catch(FormatException ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                    catch (ValueOutOfRangeException ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                }
+            }
+            foreach (string licence in filteredLicence)
+            {
+                Console.WriteLine(licence);
+            }
         }
     }
 }

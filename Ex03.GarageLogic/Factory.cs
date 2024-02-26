@@ -36,15 +36,15 @@ namespace Ex03.GarageLogic
         {
             return new FuelTruck(28, 12);
         }
-       /* public Vehicle CreateVehicle(int userChoice)
+/*        public Vehicle CreateVehicle(int userChoice)
         {
             Vehicle chosenVehicle = null;
 
             switch (userChoice)
             {
                 case 0:
-                    ((FuelCar)chosenVehicle).SetMaxAirPressureAndAmountOfWheels(30,5);
-          
+                    ((FuelCar)chosenVehicle).SetMaxAirPressureAndAmountOfWheels(30, 5);
+
 
                     break;
                 case 1:

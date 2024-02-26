@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Ex03.GarageLogic
 {
-    public class VehicleInGarage
+    public class VehicleInGarageInformation
     {
         private string m_OwnerName;
         private string m_OwnerPhoneNumber;

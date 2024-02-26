@@ -11,19 +11,18 @@ namespace sol
 {
     internal class Class1
     {
+        private static Factory factory = new Factory();
+
         public static void Main(string[] args)
         {
             // Example: Create an instance of Car and populate its fields
-            Vehicle chosenVehicle = new FuelCar();
-            ((FuelCar)chosenVehicle).SetMaxAirPressureAndAmountOfWheels(30, 5);
-            ((FuelCar)chosenVehicle).FuelSystem.SetFuelType(eFuelType.OCTAN95);
-            ((FuelCar)chosenVehicle).FuelSystem.SetMaxFuelQuantity(58);
+            FuelCar chosenVehicle;
+            chosenVehicle = factory.CreateFuelCar();
 
-            FuelCar fuelCar = CheckAndDowncastVehicleType<FuelCar>(chosenVehicle);
+            Console.WriteLine(chosenVehicle.GetType().Name=="FuelCar");
 
-            GetFuelSystemInfoFromUser(fuelCar.FuelSystem);
-            GetCarInfoFromUser(fuelCar);
-            GetCarInfoFromUser(fuelCar);
+
+
             while (true)
             { }
 
