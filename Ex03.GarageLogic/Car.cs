@@ -29,39 +29,39 @@ namespace Ex03.GarageLogic
             set { m_NumberOfDoors = value; }
         }
 
-        public override void GetParameters(Dictionary<string, Type> i_VehicleParameters)
+        public override void GetParameters(Dictionary<string, Type> io_VehicleParameters)
         {
-            base.GetParameters(i_VehicleParameters);
-            i_VehicleParameters.Add("Car colors", typeof(eCarColors));
-            i_VehicleParameters.Add("Number of doors", typeof(eNumberOfDoors));
+            base.GetParameters(io_VehicleParameters);
+            io_VehicleParameters.Add("Car colors", typeof(eCarColors));
+            io_VehicleParameters.Add("Number of doors", typeof(eNumberOfDoors));
         }
 
-        public override void SetParameters(Dictionary<string, object> setParametersDict)
+        public override void SetParameters(Dictionary<string, object> io_SetParametersDict)
         {
-            base.SetParameters(setParametersDict);
+            base.SetParameters(io_SetParametersDict);
 
-            foreach (string param in setParametersDict.Keys)
+            foreach (string param in io_SetParametersDict.Keys)
             {
                 if (param == "Car colors")
                 {
-                    Color = (eCarColors)setParametersDict[param];
+                    Color = (eCarColors)io_SetParametersDict[param];
                 }
                 if (param == "Number of doors")
                 {
-                    NumberOfDoors = (eNumberOfDoors)setParametersDict[param];
+                    NumberOfDoors = (eNumberOfDoors)io_SetParametersDict[param];
                 }
             }
         }
 
         public override abstract Type CheckVehicleSystem();
 
-        public override abstract void FillEnergySource(Dictionary<string, object> i_ParametersToFillUp);
+        public override abstract void FillEnergySource(Dictionary<string, object> io_ParametersToFillUp);
 
-        public override void GetParmetersToDisplay(Dictionary<string, string> i_DisplayParameters)
+        public override void GetParmetersToDisplay(Dictionary<string, string> io_DisplayParameters)
         {
-            base.GetParmetersToDisplay (i_DisplayParameters);
-            i_DisplayParameters.Add("Car color: ", Color.ToString());
-            i_DisplayParameters.Add("Car number of doors: ", (NumberOfDoors).ToString());
+            base.GetParmetersToDisplay (io_DisplayParameters);
+            io_DisplayParameters.Add("Car color: ", Color.ToString());
+            io_DisplayParameters.Add("Car number of doors: ", (NumberOfDoors).ToString());
         }
     }
 }
