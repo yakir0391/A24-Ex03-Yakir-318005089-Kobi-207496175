@@ -11,90 +11,126 @@ namespace sol
 {
     internal class Class1
     {
-        private static Factory factory = new Factory();
-
-        public static void Main(string[] args)
+        public abstract class Vehicle
         {
-            // Example: Create an instance of Car and populate its fields
-            FuelCar chosenVehicle;
-            chosenVehicle = factory.CreateFuelCar();
+            public string Manufacturer { get; set; }
+            public eCarColors e1;
 
-            Console.WriteLine(chosenVehicle.GetType().Name=="FuelCar");
-
-
-
-            while (true)
-            { }
-
-            // Now the car object has been populated with user input data
-        }
-        public static void GetCarInfoFromUser(Car i_ChosenVehicle)
-        {
-            string colorSelected, numOfDoorsSelected;
-            int parsedColorSelected, parsedNumOfDoors;
-            eCarColors eColor;
-            eNumberOfDoors eNumberOfDoors;
-
-            while (true)
+            public eCarColors E1
             {
-                try
-                {
-                    Console.WriteLine("Select the color of your car \nCar Colors Menu:");
-                    foreach (eCarColors color in Enum.GetValues(typeof(eCarColors)))
-                    {
-                        Console.WriteLine($"{(int)color} : {color}");
-                    }
-
-                    colorSelected = Console.ReadLine();
-
-                    if (!int.TryParse(colorSelected, out parsedColorSelected))
-                    {
-                        throw new FormatException("Please enter a valid number.");
-                    }
-                    else
-                    {
-                        if (parsedColorSelected < 0 || parsedColorSelected > 3)
-                        {
-                            throw new ValueOutOfRangeException("Color selection should be between 0-3!.", 0, 3);
-                        }
-
-                        eColor = (eCarColors)Enum.GetValues(typeof(eCarColors)).GetValue(parsedColorSelected);
-                        break;
-                    }
-                }
-                catch (ValueOutOfRangeException ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-                catch (FormatException ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
+                get { return e1; }
+                set { e1 = value; }
+            }
+            public virtual void StartEngine()
+            {
+                Console.WriteLine($"{Manufacturer} vehicle engine starts");
             }
 
+            public virtual Dictionary<string, Type> GetParameters()
+            {
+                var parameters = new Dictionary<string, Type>();
+                parameters.Add(nameof(Manufacturer), typeof(string));
+                return parameters;
+            }
+        }
+
+        // Derived class 1
+        public class Car : Vehicle
+        {
+            public int NumberOfDoors { get; set; }
+           
+            public override void StartEngine()
+            {
+                Console.WriteLine($"Car engine starts with {NumberOfDoors} doors");
+            }
+
+            public override Dictionary<string, Type> GetParameters()
+            {
+                var parameters = base.GetParameters();
+                parameters.Add(nameof(NumberOfDoors), typeof(int));
+                parameters.Add(nameof(e1),typeof(eCarColors));
+                return parameters;
+            }
+
+        }
+
+        // Derived class 2
+        class FuelCar : Car
+        {
+            FuelSystem fuelSystem;
+            public bool IsTurbocharged { get; set; }
+
+            // Additional property for FuelCar
+            public string FuelType { get; set; }
+
+            // Override the StartEngine method
+            public override void StartEngine()
+            {
+                Console.WriteLine($"FuelCar engine starts with {FuelType} fuel{(IsTurbocharged ? " and is turbocharged" : "")}");
+            }
+
+            public override Dictionary<string, Type> GetParameters()
+            {
+                var parameters = base.GetParameters();
+                parameters.Add(nameof(IsTurbocharged), typeof(bool));
+                parameters.Add(nameof(FuelType), typeof(string));
+                parameters.Add(nameof(fuelSystem), typeof(FuelSystem)); 
+                return parameters;
+            }
+
+        }
+
+        public static void HandleEnumSelection(Type enumType)
+        {
+            // Display options to the user
+            Console.WriteLine($"Select an option for {enumType.Name}:");
+            foreach (var value in Enum.GetValues(enumType))
+            {
+                Console.WriteLine($"{(int)value}. {value}");
+            }
+
+            // Get user input
+            int selectedOption;
+            if (int.TryParse(Console.ReadLine(), out selectedOption) && Enum.IsDefined(enumType, selectedOption))
+            {
+                Enum selectedEnum = (Enum)Enum.ToObject(enumType, selectedOption);
+                Console.WriteLine($"You selected: {selectedEnum}");
+            }
+            else
+            {
+                Console.WriteLine("Invalid selection.");
+            }
+        }
+
+        public static object HandleEnumSelection1(Type enumType)
+        {
+            int selectedOption, countEnumOptions = 0;
+
+
+            Console.WriteLine($"Select an option for {enumType.Name}:");
+            foreach (var value in Enum.GetValues(enumType))
+            {
+                countEnumOptions++;
+                Console.WriteLine($"{(int)value}. {value}");
+            }
+
+            Console.Write("Enter your selection: ");
+
             while (true)
             {
                 try
                 {
-                    Console.WriteLine("Please choose the number of doors:");
-                    foreach (eNumberOfDoors numberOfDoors in Enum.GetValues(typeof(eNumberOfDoors)))
-                    {
-                        Console.WriteLine($"{(int)numberOfDoors}: {numberOfDoors}");
-                    }
-
-                    numOfDoorsSelected = Console.ReadLine();
-
-                    if (!int.TryParse(numOfDoorsSelected, out parsedNumOfDoors))
+                    if (!int.TryParse(Console.ReadLine(), out selectedOption))
                     {
                         throw new FormatException("Enter a valid number");
                     }
-                    else if (parsedNumOfDoors < 0 || parsedNumOfDoors > 3)
+                    else if (!Enum.IsDefined(enumType, selectedOption))
                     {
-                        throw new ValueOutOfRangeException("Num of doors selection should be between 0-3!.", 0, 3);
+                        throw new ValueOutOfRangeException("Value out of range", 0, countEnumOptions);
                     }
 
-                    eNumberOfDoors = (eNumberOfDoors)Enum.GetValues(typeof(eNumberOfDoors)).GetValue(parsedNumOfDoors);
-                    break;
+                    return Enum.ToObject(enumType, selectedOption);
+
                 }
                 catch (FormatException ex)
                 {
@@ -104,118 +140,32 @@ namespace sol
                 {
                     Console.WriteLine(ex.Message);
                 }
-
             }
-
-         
-                i_ChosenVehicle.Color = eColor;
-                i_ChosenVehicle.NumberOfDoors = eNumberOfDoors;
-            
-
         }
-        public static T CheckAndDowncastVehicleType<T>(Vehicle chosenVehicle) where T : Vehicle
+
+        class Program
         {
-            T downcastedVehicle = null;
-
-            if (chosenVehicle is T)
+            public static void Main()
             {
-                downcastedVehicle = (T)chosenVehicle;
-            }
-            else
-            {
-                // Handle the case where the vehicle type is unknown or not supported
-                Console.WriteLine("Unknown vehicle type.");
-            }
+                Vehicle v1 = new FuelCar();
+                Dictionary<string, Type> dic = v1.GetParameters();
+                Dictionary<string,object> dic1 =new Dictionary<string,object>();
 
-            return downcastedVehicle;
-        }
-        public static void GetFuelSystemInfoFromUser(FuelSystem i_ChosenVehicle)
-        {
-            float parsedCurrentFuelQuantity = 0, maxFuelQuentity = i_ChosenVehicle.MaxFuelQuantity;
-
-            while (true)
-            {
-                try
+                
+                // Display collected parameters
+                Console.WriteLine("Parameters:");
+                foreach (KeyValuePair<string, Type> keyValuePair in dic)
                 {
-                    Console.WriteLine("Please enter the current fuel quantity :");
-                    if (!float.TryParse(Console.ReadLine(), out parsedCurrentFuelQuantity))
+                    if (keyValuePair.Value.IsEnum)
                     {
-                        throw new FormatException("Enter valid input");
+                        dic1[keyValuePair.Key] = HandleEnumSelection1(keyValuePair.Value);
+                        v1.E1 = (eCarColors)dic1[keyValuePair.Key];
+                        Console.WriteLine("{0} {1}", keyValuePair.Key, keyValuePair.Value);
                     }
-                    if (parsedCurrentFuelQuantity > maxFuelQuentity)
-                    {
-                        throw new ValueOutOfRangeException("The current fuel quantity is over the maximum", 0, maxFuelQuentity);
+                
                     }
-
-                    break;
                 }
-                catch (FormatException ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-                catch (ValueOutOfRangeException ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-
-            }
-                i_ChosenVehicle.CurrentFuelQuantity = parsedCurrentFuelQuantity; 
         }
-        public static void CheckAndDowncassttVehicleType(ref Vehicle chosenVehicle)
-        {
-            if (chosenVehicle is FuelCar)
-            {
-                FuelCar fuelCar = (FuelCar)chosenVehicle;
-                // Now you can work with fuelCar as a FuelCar
-            }
-            else if (chosenVehicle is ElectricCar)
-            {
-                ElectricCar electricCar = (ElectricCar)chosenVehicle;
-                // Now you can work with electricCar as an ElectricCar
-            }
-            else if (chosenVehicle is FuelMotorcycle)
-            {
-                FuelMotorcycle fuelMotorcycle = (FuelMotorcycle)chosenVehicle;
-                // Now you can work with fuelMotorcycle as a FuelMotorcycle
-            }
-            else if (chosenVehicle is ElectricMotorcycle)
-            {
-                ElectricMotorcycle electricMotorcycle = (ElectricMotorcycle)chosenVehicle;
-                // Now you can work with electricMotorcycle as an ElectricMotorcycle
-            }
-            else if (chosenVehicle is FuelTruck)
-            {
-                FuelTruck fuelTruck = (FuelTruck)chosenVehicle;
-                // Now you can work with fuelTruck as a FuelTruck
-            }
-            else
-            {
-                // Handle the case where the vehicle type is unknown or not supported
-                Console.WriteLine("Unknown vehicle type.");
-            }
-        }
-        public static void PopulateFieldsFromUserInput<T>(T obj)
-        {
-            // Get the type of the object
-            Type type = typeof(T);
-            FieldInfo[] arr = type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
-            // Iterate through the fields of the type
-            foreach (FieldInfo field in arr)
-            {
-                if(field.Name=="m_FuelSystem")
-                {
-                    //GetValuesForFuelSystem();
-                    continue;
-                }
-                // Prompt the user for input based on the field name
-                Console.Write($"Enter value for {field.Name}: ");
-                string userInput = Console.ReadLine();
 
-                // Convert the user input to the appropriate field type and set the field value
-                object value = Convert.ChangeType(userInput, field.FieldType);
-                field.SetValue(obj, value);
-            }
-        }
     }
-  
 }

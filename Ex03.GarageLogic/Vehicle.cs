@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,7 +20,7 @@ namespace Ex03.GarageLogic
 
             for (int i = 0; i < amount_of_wheels; i++)
             {
-                this.m_Wheels.Add(new Wheel()); // Initialize each wheel object within the loop
+                this.m_Wheels.Add(new Wheel());
                 this.m_Wheels[i].MaxAirPressure = maxAirPressure;
             }
         }   
@@ -38,7 +39,17 @@ namespace Ex03.GarageLogic
         public float EnergyLeft
         {
             get { return m_EnergyLeft; }
-            set { m_EnergyLeft = value; }
+            set 
+            {
+                if (value > 100 || value < 0)
+                {
+                    throw new ValueOutOfRangeException("Value out of range", 0, 100);
+                }
+                else
+                { 
+                    m_EnergyLeft = value;
+                } 
+            }
         }
 
         public List<Wheel> Wheels
@@ -48,6 +59,29 @@ namespace Ex03.GarageLogic
   
         }
 
+        public virtual void GetParameters(Dictionary<string, Type> io_VehicleParameters)
+        {
+            io_VehicleParameters.Add("Model name" , typeof(string));
+        }
+    
+     
+
+        public virtual void SetParameters(Dictionary<string, object> io_SetParametersDict)
+        {
+            foreach (string param in io_SetParametersDict.Keys)
+            {
+                if (param == "Model name")
+                {
+                    m_ModelName = (string)io_SetParametersDict[param];
+                }
+                if (param == "Licence number")
+                {
+                    m_LicenseNumber = (string)io_SetParametersDict[param];
+                }
+            }
+
+        }
+
         public void SetMaxAirPressureAndAmountOfWheels(float i_MaxAirPressure,int i_Amount_of_wheels)
         {
             this.m_Wheels = new List<Wheel>(i_Amount_of_wheels);
@@ -55,17 +89,35 @@ namespace Ex03.GarageLogic
 
             for (int i = 0; i < i_Amount_of_wheels; i++)
             {
-                this.m_Wheels.Add(new Wheel()); // Initialize each wheel object within the loop
+                this.m_Wheels.Add(new Wheel()); 
                 this.m_Wheels[i].MaxAirPressure = i_MaxAirPressure;
             }
         }
 
-        public void UpdateVehicleDetails(string i_ModelName, string i_LicenceNumber, float i_EnergyLeft, List<Wheel> i_Wheels)
+        public void InflateAir()
         {
-            this.m_ModelName = i_ModelName;
-            this.m_LicenseNumber = i_LicenceNumber;
-            this.m_EnergyLeft = i_EnergyLeft;
-            this.m_Wheels = i_Wheels;
+            foreach (Wheel wheel in this.Wheels)
+            {
+                wheel.InflatingAir(wheel.MaxAirPressure - wheel.CurrentAirPressure);
+            }
         }
+
+        public virtual void GetParmetersToDisplay(Dictionary<string, string> io_DisplayParameters)
+        {
+            int i = 0;
+
+            io_DisplayParameters.Add("Model name: ", ModelName);
+            io_DisplayParameters.Add("Licence number: ", LicenseNumber);
+            io_DisplayParameters.Add("Energy left: ", EnergyLeft.ToString());
+            foreach(Wheel wheel in Wheels)
+            {
+                io_DisplayParameters.Add($"Wheel {i} Manufacture name: ",wheel.ManufacturerName);
+                io_DisplayParameters.Add($"Wheel {i++} Current air pressure: ", wheel.CurrentAirPressure.ToString());
+            }
+        }
+
+        public abstract Type CheckVehicleSystem();
+
+        public abstract void FillEnergySource(Dictionary<string, object> i_ParametersToFillUp);
     }
 }

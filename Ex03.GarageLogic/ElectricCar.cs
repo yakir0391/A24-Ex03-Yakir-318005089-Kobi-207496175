@@ -10,15 +10,45 @@ namespace Ex03.GarageLogic
     {
         ElectricSystem m_ElectricSystem;
 
-        public ElectricCar(float maxAirPressure, int amount_of_wheels) : base(maxAirPressure, amount_of_wheels)
+        public ElectricCar()
         {
             this.m_ElectricSystem = new ElectricSystem(4.8f);
         }
 
-        public ElectricSystem ElectricSystem { get { return m_ElectricSystem;} }
-        public void UpdateElectricCarAndOwnerInfo(float i_RemainingBatteryTime, float i_BatteryLife)
+        public ElectricSystem ElectricSystem 
         {
-            this.m_ElectricSystem.UpdateElectricSystem(i_RemainingBatteryTime, i_BatteryLife);
+            get { return m_ElectricSystem;}
+        }
+
+        public override void GetParameters(Dictionary<string, Type> i_VehicleParameters)
+        {
+            base.GetParameters(i_VehicleParameters);
+            ElectricSystem.GetParameters(i_VehicleParameters);
+        }
+
+        public override void SetParameters(Dictionary<string, object> io_SetParametersDict)
+        {
+            float energyLeft = 0;
+
+            base.SetParameters(io_SetParametersDict);
+            ElectricSystem.SetParameters(io_SetParametersDict, ref energyLeft);
+            EnergyLeft = energyLeft;
+        }
+
+        public override Type CheckVehicleSystem()
+        {
+            return typeof(ElectricSystem);
+        }
+
+        public override void FillEnergySource(Dictionary<string, object> i_ParametersToFillUp)
+        {
+            ElectricSystem.Recharging((float)i_ParametersToFillUp["Amount of charge"]);
+        }
+
+        public override void GetParmetersToDisplay(Dictionary<string, string> i_DisplayParameters)
+        {
+            base.GetParmetersToDisplay(i_DisplayParameters);
+            ElectricSystem.GetParmetersToDisplay(i_DisplayParameters);
         }
     }
 }

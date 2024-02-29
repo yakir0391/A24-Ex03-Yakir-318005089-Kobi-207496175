@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -23,9 +24,9 @@ namespace Ex03.GarageLogic
             get { return m_CurrentAirPressure; }
             set
             {
-                if (value + this.m_CurrentAirPressure < m_MaxAirPressure)
+                if (value <= m_MaxAirPressure)
                 {
-                    m_CurrentAirPressure += value;
+                    m_CurrentAirPressure = value;
                 }
                 else
                 {
@@ -41,16 +42,22 @@ namespace Ex03.GarageLogic
             set { m_MaxAirPressure = value; }
         }
 
-        public Wheel Assign( Wheel wheel)
+        public void Assign(Wheel i_Wheel)
         {
-            this.ManufacturerName = wheel.ManufacturerName;
-            this.CurrentAirPressure = wheel.CurrentAirPressure;
-            return this;
+            this.ManufacturerName = i_Wheel.ManufacturerName;
+            this.CurrentAirPressure = i_Wheel.CurrentAirPressure;
         }
 
-        public bool InflatingAir(float i_AirToAdd)
+        public void InflatingAir(float i_AirToAdd)
         {
-            return true;
+            if (CurrentAirPressure + i_AirToAdd <= MaxAirPressure)
+            { 
+                this.CurrentAirPressure += i_AirToAdd;
+            }
+            else
+            {
+                throw new ValueOutOfRangeException("Value out of range", 0, MaxAirPressure);
+            }
         }
     }
 }

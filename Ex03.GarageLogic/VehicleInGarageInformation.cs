@@ -18,21 +18,17 @@ namespace Ex03.GarageLogic
             get { return m_OwnerName; }
             set { m_OwnerName = value; }
         }
+
         public string OwnerPhoneNumber
         {
             get { return m_OwnerPhoneNumber; }
             set { m_OwnerPhoneNumber = value; }
         }
+
         public eVehicleCondition VehicleCondition
         {
             get { return m_VehicleCondition; }
             set { m_VehicleCondition = value; }
-        }
-        public void UpdateVehicleInGarageDetails(string i_OwnerName, string i_OwnerPhoneNumber, eVehicleCondition i_VehicleCondition)
-        {
-            this.m_OwnerName = i_OwnerName;
-            this.m_OwnerPhoneNumber = i_OwnerPhoneNumber;
-            this.m_VehicleCondition = i_VehicleCondition;
         }
     }
 }

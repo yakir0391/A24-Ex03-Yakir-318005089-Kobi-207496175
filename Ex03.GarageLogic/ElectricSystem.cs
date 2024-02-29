@@ -21,7 +21,7 @@ namespace Ex03.GarageLogic
             get { return this.m_RemainingBatteryTime;}
             set 
             {
-                if (value < this.BatteryLife)
+                if (value <= this.BatteryLife)
                 { 
                     this.m_RemainingBatteryTime = value;
                 }
@@ -38,15 +38,38 @@ namespace Ex03.GarageLogic
             set { m_BatteryLife = value;}
         }
 
-        public void UpdateElectricSystem(float i_RemainingBatteryTime, float i_BatteryLife)
+        public void Recharging(float i_HoursAmount)
         {
-            this.m_RemainingBatteryTime = i_RemainingBatteryTime;
-            this.m_BatteryLife = i_BatteryLife;
+            if (i_HoursAmount + RemainingBatteryTime > BatteryLife)
+            {
+                throw new ValueOutOfRangeException("The amount you asked to fill is over the maximum", 0, BatteryLife);
+            }
+            else
+            {
+                RemainingBatteryTime += i_HoursAmount;
+            }
         }
 
-        public void BatteryCharging(float numOfHours)
+        public void GetParmetersToDisplay(Dictionary<string, string> i_DisplayParameters)
         {
+            i_DisplayParameters.Add("Battery life: ", BatteryLife.ToString());
+            i_DisplayParameters.Add("Remaining battery time: ", RemainingBatteryTime.ToString());
+        }
 
+        public void SetParameters(Dictionary<string, object> io_SetParametersDict, ref float io_EnergyLeft)
+        {
+            foreach (string param in io_SetParametersDict.Keys)
+            {
+                if (param == "Remaining battery time")
+                {
+                    RemainingBatteryTime = (float)io_SetParametersDict[param];
+                    io_EnergyLeft = (RemainingBatteryTime / BatteryLife) * 100;
+                }
+            }
+        }
+        public void GetParameters(Dictionary<string, Type> i_VehicleParameters)
+        {
+            i_VehicleParameters.Add("Remaining battery time", typeof(float));
         }
     }
 }

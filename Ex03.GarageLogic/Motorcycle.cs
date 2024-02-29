@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Ex03.GarageLogic
 {
-    public class Motorcycle : Vehicle
+    public abstract class Motorcycle : Vehicle
     {
         protected eLicenceType m_LicenceType;
         protected int m_EngineCapcity;
-        public Motorcycle(float maxAirPressure, int amount_of_wheels) : base(maxAirPressure, amount_of_wheels) 
+        public Motorcycle() : base(29, 2) 
         {
             
         }
@@ -23,13 +23,47 @@ namespace Ex03.GarageLogic
         public int EngineCapcity
         {
             get { return m_EngineCapcity;}
-            set { m_EngineCapcity = value;}
+            set 
+            { 
+                m_EngineCapcity = value;
+            }
         }
 
-        public void UpdateMotorcycleDetails(eLicenceType i_LicenceType, int i_EngineCapcity)
+        public override void GetParameters(Dictionary<string, Type> io_VehicleParameters)
         {
-            this.m_LicenceType = i_LicenceType;
-            this.m_EnergyLeft = i_EngineCapcity;
+            base.GetParameters(io_VehicleParameters);
+            io_VehicleParameters.Add("Licence type", typeof(eLicenceType));
+            io_VehicleParameters.Add("Engine capacity", typeof(int));
+        }
+
+        public override void SetParameters(Dictionary<string, object> io_SetParametersDict)
+        {
+            base.SetParameters(io_SetParametersDict);
+
+            foreach (string param in io_SetParametersDict.Keys)
+            {
+                if (param == "Licence type")
+                {
+
+                    LicenceType = (eLicenceType)io_SetParametersDict[param];
+                }
+                else if (param == "Engine capacity")
+                {
+                    
+                    EngineCapcity = (int)io_SetParametersDict[param];
+                }
+            }
+        }
+        
+        public override abstract Type CheckVehicleSystem();
+        
+        public override abstract void FillEnergySource(Dictionary<string, object> io_ParametersToFillUp);
+
+        public override void GetParmetersToDisplay(Dictionary<string, string> io_DisplayParameters)
+        {
+            base.GetParmetersToDisplay (io_DisplayParameters);
+            io_DisplayParameters.Add("Licence type: ",LicenceType.ToString());
+            io_DisplayParameters.Add("Engine Capacity: ", EngineCapcity.ToString());
         }
     }
 }

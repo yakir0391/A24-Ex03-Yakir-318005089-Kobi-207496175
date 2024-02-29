@@ -44,28 +44,44 @@ namespace Ex03.GarageLogic
             }
         }
 
-        public string[] GetLicenceArray(string flag,eVehicleCondition i_Condition)
+        public List<string> GetLicenceArray(string i_Filtered,eVehicleCondition i_Condition)
         {
-            string[] licenceArr=new string[] { };
+            List<string> licenceArr=new List<string>();
 
             foreach (KeyValuePair<string ,(Vehicle,VehicleInGarageInformation)> keyValuePair in m_Vehicles)
             {
-                if(flag == "1")
+
+                if(i_Filtered == "1")
                 {
                     if(keyValuePair.Value.Item2.VehicleCondition == i_Condition)
                     {
-                        licenceArr.Append(keyValuePair.Key);
+                        licenceArr.Add(keyValuePair.Key);
                     }
                 }
                 else
                 {
-                    licenceArr.Append(keyValuePair.Key);
+                    licenceArr.Add(keyValuePair.Key);
                 }
             }
 
             return licenceArr;
         }
-
-
+        public void ChangeVehicleStatus(string i_LicenceNumber, eVehicleCondition i_NewVehicleCondition)
+        {
+            foreach (KeyValuePair<string, (Vehicle, VehicleInGarageInformation)> keyValuePair in m_Vehicles)
+            {
+                if (keyValuePair.Key == i_LicenceNumber)
+                {
+                    keyValuePair.Value.Item2.VehicleCondition = i_NewVehicleCondition;
+                    break;
+                }
+            }
+        }
+        public void GetClientParameters(Dictionary<string, string> io_ClientParameters, string i_LicenceNumber) 
+        {
+            io_ClientParameters.Add("Client name: ", Vehicles[i_LicenceNumber].Item2.OwnerName);
+            io_ClientParameters.Add("Client phone number: ", Vehicles[i_LicenceNumber].Item2.OwnerPhoneNumber);
+            io_ClientParameters.Add("Vehicle condition: ", Vehicles[i_LicenceNumber].Item2.VehicleCondition.ToString());
+        }
     }
 }

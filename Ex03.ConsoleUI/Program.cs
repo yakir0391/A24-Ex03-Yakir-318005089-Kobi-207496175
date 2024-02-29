@@ -13,7 +13,6 @@ namespace Ex03.ConsoleUI
 
         public static void Main()
         {
-
             ChooseMenu();
         }
 
@@ -28,7 +27,8 @@ namespace Ex03.ConsoleUI
                     $"4 : Inflate vehicle's wheels to maximum.\n" +
                     $"5 : Refuel a vehicle in the garage.\n" +
                     $"6 : Charge electric vehicle.\n" +
-                    $"7 : Display data of a specific car according to licence number.\n";
+                    $"7 : Display data of a specific car according to licence number.\n" +
+                    "Any other key to Exit";
                 Console.WriteLine(menu);
 
                 string strChoice = Console.ReadLine();
@@ -43,16 +43,23 @@ namespace Ex03.ConsoleUI
                         DisplayLicenceNumbers();
                         break;
                     case 3:
+                        ChangeVehicleCondition();
                         break;
                     case 4:
+                        InflateTiresToMax();
                         break;
                     case 5:
+                        RefuelVehicle();
                         break;
                     case 6:
+                        RechargeVehicle();
                         break;
                     case 7:
+                        DisplaySpecificCarDetails();
                         break;
                     default:
+                        Console.WriteLine("Bye Bye");
+                        Environment.Exit(0);
                         break;
                 }
             }
@@ -60,85 +67,125 @@ namespace Ex03.ConsoleUI
 
         public static void EnterNewVehicleInGarage()
         {
-            FuelCar fuelCar;
-            FuelMotorcycle fuelMotorcycle;
-            FuelTruck fuelTruck;
-            ElectricCar electricCar;
-            ElectricMotorcycle electricMotorcycle;
-            VehicleInGarageInformation vehicleInGarageInformation = new VehicleInGarageInformation();
+            int chosenVehicleID;
             string licenceNumber;
-            bool isExist;
-            int vehicleID;
+            Vehicle chosenVehicle;
+            Dictionary<string, Type> getParametersDict = new Dictionary<string, Type>();
+            Dictionary<string, object> setParametersDict = new Dictionary<string, object>();
+            VehicleInGarageInformation client = new VehicleInGarageInformation();
 
             licenceNumber = UserEnterLicenseNumber();
-            isExist = m_Garage.CheckIfLicenseNumberExist(licenceNumber);
+            setParametersDict.Add("Licence number", licenceNumber);
 
-            if (!isExist)
+            if (!m_Garage.CheckIfLicenseNumberExist(licenceNumber))
             {
-                vehicleID = UserSelectVehicleForGarage();
-                GetClientInfo(vehicleInGarageInformation);
+                chosenVehicleID = UserSelectVehicleForGarage();
+                GetClientInfo(client);
+                chosenVehicle = m_VehiclesFactory.CreateVehicle(chosenVehicleID);
+                chosenVehicle.GetParameters(getParametersDict);
+                GetWheelsInfoFromUser(chosenVehicle);
 
-                switch (vehicleID)
+                while (true)
                 {
-                    case 0:
-                        fuelCar = m_VehiclesFactory.CreateFuelCar();
-                        GetVehicleInfoFromUser(fuelCar, licenceNumber);
-                        GetFuelSystemInfoFromUser(fuelCar.FuelSystem);
-                        GetCarInfoFromUser(fuelCar);
-                        m_Garage.Vehicles.Add(fuelCar.LicenseNumber,(fuelCar, vehicleInGarageInformation));
+                    try
+                    {
+                        foreach (KeyValuePair<string, Type> keyValuePair in getParametersDict)
+                        {
 
-                        break;
-                    case 1:
-                        fuelMotorcycle = m_VehiclesFactory.CreateFuelMotorcycle();
-                        GetVehicleInfoFromUser(fuelMotorcycle, licenceNumber);
-                        GetFuelSystemInfoFromUser(fuelMotorcycle.FuelSystem);
-                        GetMotorcycleInfoFromUser(fuelMotorcycle);
-                        m_Garage.Vehicles.Add(fuelMotorcycle.LicenseNumber , (fuelMotorcycle, vehicleInGarageInformation));
+                            if (keyValuePair.Value == typeof(bool))
+                            {
+                                Console.WriteLine($"Press 'yes' or any other key if not {keyValuePair.Key}: ");
+                                string boolInput = Console.ReadLine().ToLower();
+                                Console.WriteLine("-----------------------------------");
+                                bool boolValue = boolInput == "yes";
+                                setParametersDict[keyValuePair.Key] = boolValue;
+                            }
+                            else if (keyValuePair.Value.IsEnum)
+                            {
+                                setParametersDict[keyValuePair.Key] = HandleEnumSelection(keyValuePair.Value, keyValuePair.Key);
+                            }
+                            else
+                            {
+                                Console.Write($"Enter {keyValuePair.Key}: ");
+                                string inputValue = Console.ReadLine();
 
-                        break;
-                    case 2:
-                        electricCar = m_VehiclesFactory.createElectricCar();
-                        GetVehicleInfoFromUser(electricCar, licenceNumber);
-                        GetElectricSystemInfoFromUser(electricCar.ElectricSystem);
-                        GetCarInfoFromUser(electricCar);
-                        m_Garage.Vehicles.Add(electricCar.LicenseNumber, (electricCar, vehicleInGarageInformation   ));
+                                object convertedValue = Convert.ChangeType(inputValue, keyValuePair.Value);
+                                setParametersDict[keyValuePair.Key] = convertedValue;
+                                Console.WriteLine("-----------------------------------");
+                            }
+                        }
 
+                        chosenVehicle.SetParameters(setParametersDict);
                         break;
-                    case 3:
-                        electricMotorcycle = m_VehiclesFactory.createElectricMotorcycle();
-                        GetVehicleInfoFromUser(electricMotorcycle, licenceNumber);
-                        GetElectricSystemInfoFromUser(electricMotorcycle.ElectricSystem);
-                        GetMotorcycleInfoFromUser(electricMotorcycle);
-                        m_Garage.Vehicles.Add(electricMotorcycle.LicenseNumber, (electricMotorcycle, vehicleInGarageInformation));
-
-                        break;
-                    case 4:
-                        fuelTruck = m_VehiclesFactory.createFuelTruck();
-                        GetVehicleInfoFromUser(fuelTruck, licenceNumber );
-                        GetFuelSystemInfoFromUser(fuelTruck.FuelSystem);
-                        GetTruckInfoFromUser(fuelTruck);
-                        m_Garage.Vehicles.Add(fuelTruck.LicenseNumber, (fuelTruck, vehicleInGarageInformation));
-
-                        break;
-                    default:
-                        break;
+                    }
+                    catch (FormatException ex)
+                    {
+                        Console.WriteLine("value not valid");
+                    }
+                    catch (ValueOutOfRangeException ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
                 }
+
+                m_Garage.Vehicles.Add(licenceNumber, (chosenVehicle, client));
             }
             else
             {
-                Console.WriteLine("The vehicle is in the garage.\n");
-
-                m_Garage.UpdateStatusForVehicle(licenceNumber);
+                Console.WriteLine("Vehicle already exist in garage!\n");
+                Console.WriteLine("----------------------------------");
+                m_Garage.Vehicles[licenceNumber].Item2.VehicleCondition = eVehicleCondition.UnderRepair;
             }
+        }
 
+        public static object HandleEnumSelection(Type i_EnumType, string i_EnumName)
+        {
+            int selectedOption, countEnumOptions = 0;
+
+            while (true)
+            {
+                try
+                {
+                    Console.WriteLine($"Select an option for {i_EnumName}: ");
+                    foreach (var value in Enum.GetValues(i_EnumType))
+                    {
+                        countEnumOptions++;
+                        Console.WriteLine($"{(int)value}. {value}");
+                    }
+
+                    Console.Write("Enter your selection: ");
+
+                    if (!int.TryParse(Console.ReadLine(), out selectedOption))
+                    {
+                        throw new FormatException("Enter a valid number");
+                    }
+                    else if (!Enum.IsDefined(i_EnumType, selectedOption))
+                    {
+                        throw new ValueOutOfRangeException("Value out of range", 0, countEnumOptions);
+                    }
+
+                    Console.WriteLine("--------------------------");
+                    return Enum.ToObject(i_EnumType, selectedOption);
+
+                }
+                catch (FormatException ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+                catch (ValueOutOfRangeException ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
         }
 
         public static string UserEnterLicenseNumber()
         {
             string licenceNumber;
 
-            Console.WriteLine("Please enter the car's license number in length of 6-8 contains only digits :");
+            Console.Write("Please enter the license number: ");
             licenceNumber = Console.ReadLine();
+            Console.WriteLine("--------------------------");
 
             return licenceNumber;
         }
@@ -150,17 +197,17 @@ namespace Ex03.ConsoleUI
 
             while (true)
             {
-
                 try
                 {
-                    Console.WriteLine("\nPlease choose which vehicle you wish to enter the garage: \n");
+                    Console.WriteLine("\nPlease choose which vehicle you wish to enter the garage: ");
 
                     for (int i = 0; i < m_VehiclesFactory.VehicleTypes.Length; i++)
                     {
-                        Console.WriteLine("{0} : {1}\n", i, m_VehiclesFactory.VehicleTypes[i]);
+                        Console.WriteLine("{0} : {1}", i, m_VehiclesFactory.VehicleTypes[i]);
                     }
 
                     vehicle = Console.ReadLine();
+                    Console.WriteLine("\n--------------------------");
 
                     if (!int.TryParse(vehicle, out parsedVehicleId))
                     {
@@ -188,162 +235,52 @@ namespace Ex03.ConsoleUI
             return parsedVehicleId;
         }
 
-        public static void GetVehicleInfoFromUser(Vehicle i_ChosenVehicle,string i_LicenseNumber)
+        public static void GetWheelsInfoFromUser(Vehicle i_ChosenVehicle)
         {
-            string modelName, insertWheelsSelection;
-            int j = 1;
+            string insertWheelsSelection;
 
-            Console.WriteLine("Enter model name contains only numbers and charcters :");
-            modelName = Console.ReadLine();
-
-            Console.Write("Press 1 if you wish to insert the wheels at once , any other key to insert them 1 by 1");
+            Console.Write("Press 1 if you wish to insert the wheels at once , any other key to insert them one by one: ");
             insertWheelsSelection = Console.ReadLine();
+            Console.WriteLine("--------------------------");
 
             for (int i = 0; i < i_ChosenVehicle.Wheels.Count; i++)
             {
 
-                if (insertWheelsSelection != "1" || i < 1) 
+                if (insertWheelsSelection != "1" || i < 1)
                 {
-                    Console.WriteLine($"Enter details for wheel {j++}:");
+                    Console.WriteLine($"Enter details here: ");
                     GetWheelParametersFromUser(i_ChosenVehicle.Wheels[i]);
                 }
-                else if (i < i_ChosenVehicle.Wheels.Count - 1)
+                else if (i < i_ChosenVehicle.Wheels.Count)
                 {
-                    i_ChosenVehicle.Wheels[i + 1].Assign(i_ChosenVehicle.Wheels[i]);
+                    i_ChosenVehicle.Wheels[i].Assign(i_ChosenVehicle.Wheels[i - 1]);
                 }
             }
-            i_ChosenVehicle.LicenseNumber = i_LicenseNumber;
-            i_ChosenVehicle.ModelName = modelName;
         }
 
-        public static void GetWheelParametersFromUser(Wheel wheel)
+        public static void GetWheelParametersFromUser(Wheel i_Wheel)
         {
             float currentAirPressure;
             string manufacturerName;
 
-            Console.Write("Enter manufacturer name: :");
+            Console.Write("Enter manufacturer name: ");
             manufacturerName = Console.ReadLine();
-            wheel.ManufacturerName = manufacturerName;
+            i_Wheel.ManufacturerName = manufacturerName;
 
             while (true)
             {
                 try
                 {
-                    Console.Write("Enter current air pressure contains only numbers :");
-                    if(!float.TryParse(Console.ReadLine(), out currentAirPressure))
+                    Console.Write("Enter current air pressure: ");
+                    if (!float.TryParse(Console.ReadLine(), out currentAirPressure))
                     {
                         throw new FormatException("Enter a valid input");
                     }
-                    wheel.CurrentAirPressure = currentAirPressure;
+
+                    Console.WriteLine("--------------------------");
+                    i_Wheel.CurrentAirPressure = currentAirPressure;
 
                     break;
-                }
-                catch(ValueOutOfRangeException ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-                catch (FormatException ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            }
-
-        }
-
-        public static void GetFuelSystemInfoFromUser(FuelSystem i_ChosenVehicleSystem)
-        {
-            float parsedCurrentFuelQuantity = 0, maxFuelQuentity = i_ChosenVehicleSystem.MaxFuelQuantity;
-
-            while (true)
-            {
-                try
-                {
-                    Console.WriteLine("Please enter the current fuel quantity :");
-                    if (!float.TryParse(Console.ReadLine(), out parsedCurrentFuelQuantity))
-                    {
-                        throw new FormatException("Enter valid input");
-                    }
-
-                    i_ChosenVehicleSystem.CurrentFuelQuantity = parsedCurrentFuelQuantity;
-
-                    break;
-                }
-                catch (FormatException ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-                catch (ValueOutOfRangeException ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            }
-        }
-
-        public static void GetElectricSystemInfoFromUser(ElectricSystem i_ChosenVehicleElectricSystem)
-        {
-            float parsedRemainingBattery = 0, batteryLife = 0;
-
-            batteryLife = i_ChosenVehicleElectricSystem.BatteryLife;
-
-            while (true)
-            {
-                try
-                {
-                    Console.WriteLine("Please enter the current battery remaining quantity :");
-
-                    if (!float.TryParse(Console.ReadLine(), out parsedRemainingBattery))
-                    {
-                        throw new FormatException("Enter valid input");
-                    }
-
-                    i_ChosenVehicleElectricSystem.RemainingBatteryTime = parsedRemainingBattery;
-
-                    break;
-                }
-                catch (FormatException ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-                catch (ValueOutOfRangeException ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            }
-        }
-     
-        public static void GetCarInfoFromUser(Car i_ChosenVehicle)
-        {
-            string colorSelected, numOfDoorsSelected;
-            int parsedColorSelected, parsedNumOfDoors;
-            eCarColors eColor;
-            eNumberOfDoors eNumberOfDoors;
-
-            while (true)
-            {
-                try
-                {
-                    Console.WriteLine("Select the color of your car \nCar Colors Menu:");
-                    foreach (eCarColors color in Enum.GetValues(typeof(eCarColors)))
-                    {
-                        Console.WriteLine($"{(int)color} : {color}");
-                    }
-
-                    colorSelected = Console.ReadLine();
-
-                    if (!int.TryParse(colorSelected, out parsedColorSelected))
-                    {
-                        throw new FormatException("Please enter a valid number.");
-                    }
-                    else
-                    {
-                        if (parsedColorSelected < 0 || parsedColorSelected > 3)
-                        {
-                            throw new ValueOutOfRangeException("Color selection should be between 0-3!.", 0, 3);
-                        }
-
-                        eColor = (eCarColors)Enum.GetValues(typeof(eCarColors)).GetValue(parsedColorSelected);
-                        break;
-                    }
                 }
                 catch (ValueOutOfRangeException ex)
                 {
@@ -355,243 +292,246 @@ namespace Ex03.ConsoleUI
                 }
             }
 
-            while (true)
-            {
-                try
-                {
-                    Console.WriteLine("Please choose the number of doors:");
-                    foreach (eNumberOfDoors numberOfDoors in Enum.GetValues(typeof(eNumberOfDoors)))
-                    {
-                        Console.WriteLine($"{(int)numberOfDoors}: {numberOfDoors}");
-                    }
-
-                    numOfDoorsSelected = Console.ReadLine();
-
-                    if (!int.TryParse(numOfDoorsSelected, out parsedNumOfDoors))
-                    {
-                        throw new FormatException("Enter a valid number");
-                    }
-                    else if (parsedNumOfDoors < 0 || parsedNumOfDoors > 3)
-                    {
-                        throw new ValueOutOfRangeException("Num of doors selection should be between 0-3!.", 0, 3);
-                    }
-
-                    eNumberOfDoors = (eNumberOfDoors)Enum.GetValues(typeof(eNumberOfDoors)).GetValue(parsedNumOfDoors);
-                    break;
-                }
-                catch (FormatException ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-                catch (ValueOutOfRangeException ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-
-            }
-
-            i_ChosenVehicle.Color = eColor;
-            i_ChosenVehicle.NumberOfDoors = eNumberOfDoors;
         }
 
-        public static void GetMotorcycleInfoFromUser(Motorcycle i_ChosenVehicle)
+        public static void GetClientInfo(VehicleInGarageInformation i_Client)
         {
-            string licenceTypeSelected, engineCapacity;
-            int parseLicenceTypeSelected, parsedEngineCapacity;
-            eLicenceType selectedLicenceType;
-          
-            while (true)
-            {
-                try
-                {
-                    Console.WriteLine("Please choose the Licence type:");
-                    foreach (eLicenceType licenceType in Enum.GetValues(typeof(eLicenceType)))
-                    {
-                        Console.WriteLine($"{(int)licenceType}: {licenceType}");
-                    }
+            string ownerName, ownerPhoneNumber;
 
-                    licenceTypeSelected = Console.ReadLine();
-
-                    if (!int.TryParse(licenceTypeSelected, out parseLicenceTypeSelected))
-                    {
-                        throw new FormatException("Enter a valid number");
-                    }
-                    else if (parseLicenceTypeSelected < 0 || parseLicenceTypeSelected > 3)
-                    {
-                        throw new ValueOutOfRangeException("Licence type selection should be between 0-3!.", 0, 3);
-                    }
-
-                    selectedLicenceType = (eLicenceType)Enum.GetValues(typeof(eLicenceType)).GetValue(parseLicenceTypeSelected);
-                    break;
-                }
-                catch (FormatException ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-                catch (ValueOutOfRangeException ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            }
-
-            while (true)
-            {
-                try
-                {
-                    Console.WriteLine("Please choose the engine capacity:");
-                    engineCapacity = Console.ReadLine();
-
-                    if (!int.TryParse(engineCapacity, out parsedEngineCapacity))
-                    {
-                        throw new FormatException("Enter a valid number");
-                    }
-                    break;
-                }
-                catch (FormatException ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            }
-
-            i_ChosenVehicle.LicenceType = selectedLicenceType;
-            i_ChosenVehicle.EngineCapcity = parsedEngineCapacity;
-        }
-
-        public static void GetTruckInfoFromUser(Truck i_ChosenVehicle)
-        {
-            string isTransportHazardousMaterials, cargoVolume;
-            float parsedCargoVolume;
-            Console.WriteLine("Please press 1 if truck is transport hazardous materials else press any other key");
-            isTransportHazardousMaterials = Console.ReadLine();
-
-            while (true)
-            {
-                try
-                {
-                    Console.WriteLine("Please enter cargo volume (0-100) ");
-                    cargoVolume = Console.ReadLine();
-
-                    if (!float.TryParse(cargoVolume, out parsedCargoVolume))
-                    {
-                        throw new FormatException("Enter a valid number");
-                    }            
-                    break;
-                }
-                catch (FormatException ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }   
-            }
-            i_ChosenVehicle.CargoVolume = parsedCargoVolume;
-            i_ChosenVehicle.IsTransportHazardousMaterials = (isTransportHazardousMaterials == "1");
-        }
-
-        public static void GetClientInfo(VehicleInGarageInformation i_ChosenVehicle)
-        {
-            string ownerName, ownerPhoneNumber, carConditionSelected;
-            int parseCarConditionSelected;
-            eVehicleCondition eVehicleCondition;
-
-            Console.WriteLine("Enter your name");
+            Console.Write("Enter your name: ");
             ownerName = Console.ReadLine();
-            Console.WriteLine("Enter your phone number");
+            Console.WriteLine("--------------------------");
+            Console.Write("Enter your phone number: ");
             ownerPhoneNumber = Console.ReadLine();
-            Console.WriteLine("enter car's condition");
+            Console.WriteLine("--------------------------");
+            object carCondition = HandleEnumSelection(typeof(eVehicleCondition), "Vehicle condition");
 
-            while (true)
-            {
-                try
-                {
-                    foreach (eVehicleCondition condition in Enum.GetValues(typeof(eVehicleCondition)))
-                    {
-                        Console.WriteLine($"{(int)condition} : {condition}");
-                    }
-
-                    carConditionSelected = Console.ReadLine();
-
-                    if (!int.TryParse(carConditionSelected, out parseCarConditionSelected))
-                    {
-                        throw new FormatException("Please enter a valid number.");
-                    }
-                    else
-                    {
-                        if (parseCarConditionSelected < 0 || parseCarConditionSelected > 2)
-                        {
-                            throw new ValueOutOfRangeException("Color selection should be between 0-2!.", 0, 2);
-                        }
-
-                        eVehicleCondition = (eVehicleCondition)Enum.GetValues(typeof(eVehicleCondition)).GetValue(parseCarConditionSelected);
-                        break;
-                    }
-                }
-                catch (FormatException ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            }
-
-            (i_ChosenVehicle).OwnerName = ownerName;
-            (i_ChosenVehicle).OwnerPhoneNumber = ownerPhoneNumber;
-            (i_ChosenVehicle).VehicleCondition = eVehicleCondition;
+            i_Client.OwnerName = ownerName;
+            i_Client.OwnerPhoneNumber = ownerPhoneNumber;
+            i_Client.VehicleCondition = (eVehicleCondition)carCondition;
         }
-        
+
         public static void DisplayLicenceNumbers()
         {
-            string isFilter ,conditionTypeSelected;
-            int parseconditionTypeSelected;
-            string[] filteredLicence = new string[] { };
+            object chosenConditionToFilter;
+            string isFilter;
+            int count = 1;
+            List<string> filteredLicence = new List<string>();
             eVehicleCondition condition = eVehicleCondition.UnderRepair;
 
-            Console.WriteLine("Press 1 if you wish to filter by their condition , press any other ket otherwise.");
+            Console.WriteLine("Press 1 if you wish to filter by their condition , press any other key otherwise.");
             isFilter = Console.ReadLine();
+
             if (isFilter != "1")
             {
-                filteredLicence = m_Garage.GetLicenceArray(isFilter , condition);
+                filteredLicence = m_Garage.GetLicenceArray(isFilter, condition);
             }
             else
-            { 
-                while (true)
-                {
+            {
+                chosenConditionToFilter = HandleEnumSelection(typeof(eVehicleCondition), "Vehicle condition");
+                filteredLicence = m_Garage.GetLicenceArray(isFilter, (eVehicleCondition)chosenConditionToFilter);
 
+            }
+
+            Console.WriteLine("===========================================");
+            Console.WriteLine("Licence Numbers");
+            Console.WriteLine("===========================================");
+
+            foreach (string licence in filteredLicence)
+            {
+                Console.WriteLine($"{count}. {licence}");
+                count++;
+            }
+
+            Console.WriteLine("===========================================");
+        }
+        public static void ChangeVehicleCondition()
+        {
+            Console.Write("Enter the license number of the vehicle:");
+            string licenseNumber = Console.ReadLine();
+            object newStatus;
+
+            if (m_Garage.CheckIfLicenseNumberExist(licenseNumber))
+            {
+                newStatus = HandleEnumSelection(typeof(eVehicleCondition), "Vehicle condition");
+
+                m_Garage.ChangeVehicleStatus(licenseNumber, (eVehicleCondition)newStatus);
+
+                Console.WriteLine($"Status of vehicle with license number {licenseNumber} changed to {newStatus}.");
+            }
+            else
+            {
+                Console.WriteLine($"Vehicle with license number {licenseNumber} does not exist in the garage.");
+            }
+        }
+
+        public static void InflateTiresToMax()
+        {
+            Vehicle vehicle = null;
+            Console.Write("Enter the license number of the vehicle:");
+            string licenseNumber = Console.ReadLine();
+
+            if (m_Garage.CheckIfLicenseNumberExist(licenseNumber))
+            {
+                vehicle = m_Garage.Vehicles[licenseNumber].Item1;
+                vehicle.InflateAir();
+                Console.WriteLine($"Infalted all vehicle wheels with license number {licenseNumber} to maximum.");
+            }
+            else
+            {
+                Console.WriteLine($"Vehicle with license number {licenseNumber} does not exist in the garage.");
+            }
+        }
+
+        public static void RefuelVehicle()
+        {
+            Dictionary<string, object> parameterToFillUp = new Dictionary<string, object>();
+            string licenceNumber, fuelAmount;
+            object fuelType;
+            float parsedFuelAmount;
+
+            Console.Write("Enter the license number of the vehicle:");
+            licenceNumber = Console.ReadLine();
+
+            if (m_Garage.CheckIfLicenseNumberExist(licenceNumber))
+            {
+                Type typeOfVehicle = m_Garage.Vehicles[licenceNumber].Item1.CheckVehicleSystem();
+                if (typeof(FuelSystem) == typeOfVehicle)
+                {
+                    fuelType = HandleEnumSelection(typeof(eFuelType), "Fuel type");
+                    parameterToFillUp.Add("Fuel type", fuelType);
+
+                    while (true)
+                    {
+                        Console.WriteLine("Please enter the amount of fuel you want to fill");
+                        fuelAmount = Console.ReadLine();
+
+                        try
+                        {
+                            if (!float.TryParse(fuelAmount, out parsedFuelAmount))
+                            {
+                                throw new FormatException("Enter a valid number");
+                            }
+
+                            parameterToFillUp.Add("Amount of fuel", parsedFuelAmount);
+                            break;
+                        }
+                        catch (FormatException ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
+                    }
                     try
                     {
-                        foreach (eVehicleCondition conditionIterator in Enum.GetValues(typeof(eVehicleCondition)))
-                        {
-                            Console.WriteLine($"{(int)conditionIterator}: {conditionIterator}");
-                        }
-
-                        conditionTypeSelected = Console.ReadLine();
-
-                        if (!int.TryParse(conditionTypeSelected, out parseconditionTypeSelected))
-                        {
-                            throw new FormatException("Enter a valid number");
-                        }
-                        else if (parseconditionTypeSelected < 0 || parseconditionTypeSelected > 2)
-                        {
-                            throw new ValueOutOfRangeException("condition type selection should be between 0-2!.", 0, 2);
-                        }
-
-                        condition = (eVehicleCondition)Enum.GetValues(typeof(eVehicleCondition)).GetValue(parseconditionTypeSelected);
-                        filteredLicence = m_Garage.GetLicenceArray(isFilter, condition);
-                        break;
-                    }
-                    catch(FormatException ex)
-                    {
-                        Console.WriteLine(ex.Message);
+                        m_Garage.Vehicles[licenceNumber].Item1.FillEnergySource(parameterToFillUp);
+                        Console.WriteLine($"Vehicle with licence number {licenceNumber} was fueled !\n");
                     }
                     catch (ValueOutOfRangeException ex)
                     {
                         Console.WriteLine(ex.Message);
                     }
+                    catch (ArgumentException ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Vehicle dose not contain fuel system");
                 }
             }
-            foreach (string licence in filteredLicence)
+            else
             {
-                Console.WriteLine(licence);
+                Console.WriteLine("This licence number is unrecognized in the garage");
+            }
+        }
+
+        public static void RechargeVehicle()
+        {
+            string licenceNumber, amountToRecharge;
+            float parsedAmountToRecharge;
+            Dictionary<string, object> parameterToFillUp = new Dictionary<string, object>();
+
+            Console.Write("Enter the license number of the vehicle:");
+            licenceNumber = Console.ReadLine();
+
+            if (m_Garage.CheckIfLicenseNumberExist(licenceNumber))
+            {
+                Type typeOfVehicle = m_Garage.Vehicles[licenceNumber].Item1.CheckVehicleSystem();
+                if (typeof(ElectricSystem) == typeOfVehicle)
+                {
+                    while (true)
+                    {
+                        try
+                        {
+                            Console.WriteLine("Please enter the amount of hours you want to recharge :");
+                            amountToRecharge = Console.ReadLine();
+                            if (!float.TryParse(amountToRecharge, out parsedAmountToRecharge))
+                            {
+                                throw new FormatException("Enter a valid number");
+                            }
+
+                            parameterToFillUp.Add("Amount of charge", parsedAmountToRecharge);
+                            break;
+                        }
+                        catch (FormatException ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
+                    }
+                    try
+                    {
+                        m_Garage.Vehicles[licenceNumber].Item1.FillEnergySource(parameterToFillUp);
+                        Console.WriteLine($"Vehicle with licence number {licenceNumber} was charged !");
+                    }
+                    catch (ValueOutOfRangeException ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Vehicle dose not contain electric system");
+                }
+            }
+            else
+            {
+                Console.WriteLine("This licence number is unrecognized in the garage");
+            }
+        }
+        public static void DisplaySpecificCarDetails()
+        {
+            string licenceNumber;
+            Dictionary<string, string> displayParameters = new Dictionary<string, string>();
+
+            Console.Write("Enter the license number of the vehicle:");
+            licenceNumber = Console.ReadLine();
+
+            if (m_Garage.CheckIfLicenseNumberExist(licenceNumber))
+            {
+                m_Garage.GetClientParameters(displayParameters, licenceNumber);
+                m_Garage.Vehicles[licenceNumber].Item1.GetParmetersToDisplay(displayParameters);
+                Console.WriteLine("\n===========================================================\n");
+                PrintVehicleDetails(displayParameters);
+                Console.WriteLine("\n===========================================================\n");
+
+            }
+            else
+            {
+                Console.WriteLine("Vehicle not found!");
+            }
+        }
+        
+        public static void PrintVehicleDetails(Dictionary<string,string> i_DisplayParameters)
+        {
+            foreach (KeyValuePair<string, string> keyValuePair in i_DisplayParameters)
+            {
+                Console.WriteLine($"{keyValuePair.Key}{keyValuePair.Value}");
+                Console.WriteLine("---------------------------------------");
             }
         }
     }

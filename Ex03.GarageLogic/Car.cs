@@ -7,18 +7,20 @@ using System.Threading.Tasks;
 
 namespace Ex03.GarageLogic
 {
-    public class Car : Vehicle
+    public abstract class Car : Vehicle
     {
-        protected eCarColors m_color;
+        protected eCarColors m_Color;
         protected eNumberOfDoors m_NumberOfDoors;
-        public Car(float maxAirPressure, int amount_of_wheels) : base(maxAirPressure, amount_of_wheels)
-        {
-            
-        }
+
+        public Car() : base(30, 5) { }
+      
         public eCarColors Color
         {
-            get { return m_color; }
-            set { m_color = value; }
+            get { return m_Color; }
+            set
+            {
+                m_Color = value;
+            }
         }
 
         public eNumberOfDoors NumberOfDoors
@@ -27,11 +29,39 @@ namespace Ex03.GarageLogic
             set { m_NumberOfDoors = value; }
         }
 
-        public void UpdateCarDetails(eCarColors i_Color, eNumberOfDoors i_NumberOfDoors)
+        public override void GetParameters(Dictionary<string, Type> i_VehicleParameters)
         {
-            this.m_color = i_Color;
-            this.m_NumberOfDoors = i_NumberOfDoors;
+            base.GetParameters(i_VehicleParameters);
+            i_VehicleParameters.Add("Car colors", typeof(eCarColors));
+            i_VehicleParameters.Add("Number of doors", typeof(eNumberOfDoors));
         }
 
+        public override void SetParameters(Dictionary<string, object> setParametersDict)
+        {
+            base.SetParameters(setParametersDict);
+
+            foreach (string param in setParametersDict.Keys)
+            {
+                if (param == "Car colors")
+                {
+                    Color = (eCarColors)setParametersDict[param];
+                }
+                if (param == "Number of doors")
+                {
+                    NumberOfDoors = (eNumberOfDoors)setParametersDict[param];
+                }
+            }
+        }
+
+        public override abstract Type CheckVehicleSystem();
+
+        public override abstract void FillEnergySource(Dictionary<string, object> i_ParametersToFillUp);
+
+        public override void GetParmetersToDisplay(Dictionary<string, string> i_DisplayParameters)
+        {
+            base.GetParmetersToDisplay (i_DisplayParameters);
+            i_DisplayParameters.Add("Car color: ", Color.ToString());
+            i_DisplayParameters.Add("Car number of doors: ", (NumberOfDoors).ToString());
+        }
     }
 }

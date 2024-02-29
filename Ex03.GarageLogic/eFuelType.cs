@@ -13,5 +13,4 @@ namespace Ex03.GarageLogic
         OCTAN95,
         Soler
     }
-
 }
