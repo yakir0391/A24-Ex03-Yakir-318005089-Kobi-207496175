@@ -42,12 +42,6 @@ namespace Ex03.GarageLogic
             set { m_MaxAirPressure = value; }
         }
 
-        public void Assign(Wheel i_Wheel)
-        {
-            this.ManufacturerName = i_Wheel.ManufacturerName;
-            this.CurrentAirPressure = i_Wheel.CurrentAirPressure;
-        }
-
         public void InflatingAir(float i_AirToAdd)
         {
             if (CurrentAirPressure + i_AirToAdd <= MaxAirPressure)

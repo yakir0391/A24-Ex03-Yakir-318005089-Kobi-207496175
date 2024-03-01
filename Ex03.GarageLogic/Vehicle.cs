@@ -62,35 +62,47 @@ namespace Ex03.GarageLogic
         public virtual void GetParameters(Dictionary<string, Type> io_VehicleParameters)
         {
             io_VehicleParameters.Add("Model name" , typeof(string));
+            io_VehicleParameters.Add("Current air pressure", typeof(float));
+            io_VehicleParameters.Add("Manufacture name", typeof(string));
         }
-    
-     
 
         public virtual void SetParameters(Dictionary<string, object> io_SetParametersDict)
         {
+            float currentAirPressure = 0;
+            string manufactureName = "No name";
+
             foreach (string param in io_SetParametersDict.Keys)
             {
                 if (param == "Model name")
                 {
                     m_ModelName = (string)io_SetParametersDict[param];
                 }
-                if (param == "Licence number")
+                else if (param == "Licence number")
                 {
                     m_LicenseNumber = (string)io_SetParametersDict[param];
                 }
+                else if (param == "Current air pressure")
+                {
+                    currentAirPressure=(float)(io_SetParametersDict[param]);
+                }
+                else if (param == "Manufacture name")
+                {
+                    manufactureName = (string)io_SetParametersDict[param];
+                }
             }
 
+            SetWheelsInfo(currentAirPressure,Wheels.Count, manufactureName);
         }
 
-        public void SetMaxAirPressureAndAmountOfWheels(float i_MaxAirPressure,int i_Amount_of_wheels)
+        public void SetWheelsInfo(float i_CurrentAirPressure,int i_Amount_of_wheels, string i_ManufactureName)
         {
-            this.m_Wheels = new List<Wheel>(i_Amount_of_wheels);
-            
+            this.m_Wheels[0].CurrentAirPressure = i_CurrentAirPressure;
+            this.m_Wheels[0].ManufacturerName = i_ManufactureName;
 
-            for (int i = 0; i < i_Amount_of_wheels; i++)
+            for (int i = 1; i < i_Amount_of_wheels; i++)
             {
-                this.m_Wheels.Add(new Wheel()); 
-                this.m_Wheels[i].MaxAirPressure = i_MaxAirPressure;
+                this.Wheels[i].CurrentAirPressure = this.Wheels[i - 1].CurrentAirPressure;
+                this.Wheels[i].ManufacturerName = this.Wheels[i - 1].ManufacturerName;
             }
         }
 

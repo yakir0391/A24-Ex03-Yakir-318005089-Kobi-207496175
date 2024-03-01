@@ -62,6 +62,10 @@ namespace Ex03.ConsoleUI
                         Environment.Exit(0);
                         break;
                 }
+
+                Console.WriteLine("Press any key to return home page.");
+                Console.ReadKey();
+                Console.Clear();
             }
         }
 
@@ -83,7 +87,6 @@ namespace Ex03.ConsoleUI
                 GetClientInfo(client);
                 chosenVehicle = m_VehiclesFactory.CreateVehicle(chosenVehicleID);
                 chosenVehicle.GetParameters(getParametersDict);
-                GetWheelsInfoFromUser(chosenVehicle);
 
                 while (true)
                 {
@@ -120,11 +123,15 @@ namespace Ex03.ConsoleUI
                     }
                     catch (FormatException ex)
                     {
-                        Console.WriteLine("value not valid");
+                        Console.WriteLine("value not valid !");
                     }
                     catch (ValueOutOfRangeException ex)
                     {
                         Console.WriteLine(ex.Message);
+                    }
+                    finally
+                    {
+                        Console.WriteLine("\nClient info saved.\nPlease fill the car parameters once againg.\n");
                     }
                 }
 
@@ -233,65 +240,6 @@ namespace Ex03.ConsoleUI
             }
 
             return parsedVehicleId;
-        }
-
-        public static void GetWheelsInfoFromUser(Vehicle i_ChosenVehicle)
-        {
-            string insertWheelsSelection;
-
-            Console.Write("Press 1 if you wish to insert the wheels at once , any other key to insert them one by one: ");
-            insertWheelsSelection = Console.ReadLine();
-            Console.WriteLine("--------------------------");
-
-            for (int i = 0; i < i_ChosenVehicle.Wheels.Count; i++)
-            {
-
-                if (insertWheelsSelection != "1" || i < 1)
-                {
-                    Console.WriteLine($"Enter details here: ");
-                    GetWheelParametersFromUser(i_ChosenVehicle.Wheels[i]);
-                }
-                else if (i < i_ChosenVehicle.Wheels.Count)
-                {
-                    i_ChosenVehicle.Wheels[i].Assign(i_ChosenVehicle.Wheels[i - 1]);
-                }
-            }
-        }
-
-        public static void GetWheelParametersFromUser(Wheel i_Wheel)
-        {
-            float currentAirPressure;
-            string manufacturerName;
-
-            Console.Write("Enter manufacturer name: ");
-            manufacturerName = Console.ReadLine();
-            i_Wheel.ManufacturerName = manufacturerName;
-
-            while (true)
-            {
-                try
-                {
-                    Console.Write("Enter current air pressure: ");
-                    if (!float.TryParse(Console.ReadLine(), out currentAirPressure))
-                    {
-                        throw new FormatException("Enter a valid input");
-                    }
-
-                    Console.WriteLine("--------------------------");
-                    i_Wheel.CurrentAirPressure = currentAirPressure;
-
-                    break;
-                }
-                catch (ValueOutOfRangeException ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-                catch (FormatException ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            }
-
         }
 
         public static void GetClientInfo(VehicleInGarageInformation i_Client)

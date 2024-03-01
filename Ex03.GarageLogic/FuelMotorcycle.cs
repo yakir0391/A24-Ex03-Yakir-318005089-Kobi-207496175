@@ -23,7 +23,7 @@ namespace Ex03.GarageLogic
         public override void GetParameters(Dictionary<string, Type> io_VehicleParameters)
         {
             base.GetParameters(io_VehicleParameters);
-            io_VehicleParameters.Add("Current fuel quantity", typeof(float));
+            FuelSystem.GetParameters(io_VehicleParameters);
         }
         public override void SetParameters(Dictionary<string, object> io_SetParametersDict)
         {

@@ -83,5 +83,9 @@ namespace Ex03.GarageLogic
 
             }
         }
+        public void GetParameters(Dictionary<string, Type> io_VehicleParameters)
+        {
+            io_VehicleParameters.Add("Current fuel quantity", typeof(float));
+        }
     }
 }
